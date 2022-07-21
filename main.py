@@ -1,16 +1,14 @@
-from core import db_sync_google_sheets, get_service
+from core_new import get_service, get_content_from_google_sheets, get_exchange_rate, db_operations
 from time import sleep
-import threading
 
 
 def init():
-    service = get_service()
-
+    service = get_service() # ресурс для работы с Google Sheets API
     while True:
         sleep(0)
-        #db_check_date()
-        db_sync_google_sheets(service)
-
+        content = get_content_from_google_sheets(service) # получение контента из GoogleSheets
+        exchange_rate = get_exchange_rate() # парсинг курса валют с ЦБ РФ
+        db_operations(content, exchange_rate) #операции с базой данных
 
 
 
