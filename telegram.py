@@ -1,7 +1,8 @@
 from datetime import datetime, date
 
-def send_telegram(element):
+def send_telegram(row):
     print('telegram')
+    print(row)
 
 
 

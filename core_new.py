@@ -79,8 +79,13 @@ def check_dates(cursor):
     notified_orders = ()
     for i in orders:
         if (i[5] < date.today()):  # если срок поставки вышел
-            if (i[6] != date.today()):  # если уведомление не сегодня
+            if (i[6] == date.today()):  # если уведомление сегодня
                 notified_orders = notified_orders + (i[2],)
+            if (i[6] != date.today()):  # если уведомление не сегодня
+                send_telegram(i)
+                notified_orders = notified_orders + (i[2],)
+    print("notified_orders")
+    print(notified_orders)
     return notified_orders
 
 
@@ -112,6 +117,7 @@ def add_notif_date(content, notified_orders):
     return content
 
 
+#конвертация в кортеж
 def convert_to_tuple(content):
     content_tuple = []
     for i in content:
