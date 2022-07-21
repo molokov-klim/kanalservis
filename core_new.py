@@ -54,10 +54,14 @@ def db_operations(content, exchange_rate):
                 content = add_rub(content, exchange_rate)
                 content = add_notif_date(content, notified_orders)
                 content = convert_to_tuple(content)
-                print(content)
                 cursor.execute('truncate orders')
                 connection.commit()
-                sql = generate_insert_sql_request(content)
+                sql_insert_orders = generate_insert_sql_request(content)
+                cursor.execute(sql_insert_orders)
+                connection.commit()
+
+                cursor.execute('select * from orders')
+                print(cursor.fetchall())
 
 
     except Exception as _ex:
@@ -122,7 +126,11 @@ def generate_insert_sql_request(content):
     for i in content:
         sql_insert_orders = sql_insert_orders + str(i) + ","
     sql_insert_orders = sql_insert_orders[:len(sql_insert_orders) - 1] + ";"
-    print(sql_insert_orders)
+    return sql_insert_orders
+
+
+
+
 
 # получаю гугл таблицу
 # получаю курс валют
