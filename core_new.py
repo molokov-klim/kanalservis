@@ -47,7 +47,7 @@ def db_operations(content, exchange_rate):
             cursor.execute("select exists(select * from information_schema.tables where table_name=%s)", ('orders',))
             isExist = cursor.fetchone()[0]
             if isExist:
-                notified_orders = check_dates(cursor)
+                #notified_orders = check_dates(cursor)
                 #print("notified_orders")                            ####
                 #print(notified_orders)                              ####
                 content = convert_date(content)
@@ -103,6 +103,14 @@ def check_dates(cursor):
 
 # конвертация даты
 def convert_date(content):
+    print("content before")
+    print(content)
+    for i in content:
+        date_str = i[3]
+        formatter_string = "%d.%m.%Y"
+        datetime_object = datetime.strptime(date_str, formatter_string)
+        i[3] = str(datetime_object.date())
+    print("content after")
     print(content)
 
     # date_str = element[4]
