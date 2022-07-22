@@ -2,7 +2,6 @@ from aiogram import Bot, Dispatcher, executor, types
 from db import Database
 from config import BOT_API
 import logging
-from queue import Queue
 
 
 # Telegram bot and db setup
@@ -21,23 +20,43 @@ async def send_welcome(message: types.Message):
         await message.reply("Добро пожаловать!")
 
 
+# async def send_telegram(order_numbers):
+#     print("TELEGRAM order_numbers", order_numbers)
+#     print(await bot.send_message(chat_id="1353223764", text=order_numbers))
+#     await bot.send_message(chat_id="1353223764", text=order_numbers)
+
+
+async def send_telegram():
+    print("TELEGRAM")
+    await bot.send_message(chat_id=1353223764, text="order_numbers")
+    print("====================================================MESSAGE DID NOT SENDED=======================================")
+
+
+# sendall
+@dp.message_handler(commands=['sendall'])
+async def sendall(message: types.Message):
+    if message.chat.type == 'private':
+        text = message.text[9:]
+        users = db.get_users()
+        for row in users:
+            try:
+                await bot.send_message(row[0], text)
+                if int(row[1]) != 1:
+                    db.set_active(row[0], 1)
+            except:
+                db.set_active(row[0], 0)
+        print("message.from_user.id ", message.from_user.id)
+        await bot.send_message(message.from_user.id, "Успешная рассылка")
+
+
+
+
+
+
 # ответ на любое сообщение
 @dp.message_handler()
 async def echo(message: types.Message):
     await message.answer("Я еще живой")
-
-
-async def send_telegram(order_numbers):
-    print("TELEGRAM order_numbers", order_numbers)
-    try:
-        # print(q.empty())
-        # if not q.empty():
-        #     order_numbers = q.get()
-        #     await bot.send_message(chat_id=1353223764, text=order_numbers)
-        await bot.send_message(chat_id=1353223764, text=order_numbers)
-    except Exception as _ex:
-        print("[INFO] Error with telegram: ", _ex)
-
 
 def start_polling():
     executor.start_polling(dp, skip_updates=True)

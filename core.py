@@ -39,23 +39,15 @@ def get_exchange_rate():
 
 
 # операции с базой данных
-def db_operations(content, exchange_rate, loop):
+def db_operations(content, exchange_rate):
     try:
         if db.is_exist('orders'):  # если таблица orders существует
             notified_orders = db.check_dates()
-
-            # print("notified_orders: ", notified_orders)
-            # #q.put(notified_orders)
-            # q.put(3)
-            # print(q.empty())
             try:
-                send_telegram(notified_orders).send(None)
+                send_telegram().send(None)
                 #send_telegram(notified_orders)
             except StopIteration as _ex:
                 print("[INFO] Error with coroutine: ", _ex)
-
-
-
             content = convert_date(content)
             content = add_rub(content, exchange_rate)
             content = add_notif_date(content, notified_orders)

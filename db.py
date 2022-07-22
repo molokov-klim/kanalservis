@@ -39,7 +39,6 @@ class Database:
                     if i[5] == date.today():  # если уведомление сегодня
                         notified_orders = notified_orders + (i[1],)
                     if i[5] != date.today():  # если уведомление не сегодня
-                        #send_telegram(i)                                                       ########
                         notified_orders = notified_orders + (i[1],)
             print("notified_orders")
             print(notified_orders)
