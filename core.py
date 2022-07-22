@@ -9,8 +9,9 @@ from telegram import send_telegram
 import requests
 from db import Database
 
-#Database setup
+# Database setup
 db = Database()
+
 
 # создает ресурс для работы с Google Sheets API
 def get_service():
@@ -38,58 +39,34 @@ def get_exchange_rate():
 
 # операции с базой данных
 def db_operations(content, exchange_rate):
-    try:
-        connection = psycopg2.connect(
-            host=HOST,
-            port=PORT,
-            user=USER,
-            password=PASSWORD,
-            database=DB_NAME
-        )
-        with connection.cursor() as cursor:
-            cursor.execute("select exists(select * from information_schema.tables where table_name=%s)", ('orders',))
-            isExist = cursor.fetchone()[0]
-            if isExist:
-                notified_orders = check_dates(cursor)
-                content = convert_date(content)
-                content = add_rub(content, exchange_rate)
-                content = add_notif_date(content, notified_orders)
-                content = convert_to_tuple(content)
-                cursor.execute('truncate orders')
-                connection.commit()
-                sql_insert_orders = generate_insert_sql_request(content)
-                cursor.execute(sql_insert_orders)
-                connection.commit()
+    # try:
+    #     connection = psycopg2.connect(
+    #         host=HOST,
+    #         port=PORT,
+    #         user=USER,
+    #         password=PASSWORD,
+    #         database=DB_NAME
+    #     )
+    #     with connection.cursor() as cursor:
+    if db.is_exist('orders'):  # если таблица orders существует
+        notified_orders = db.check_dates()
+        content = convert_date(content)
+        content = add_rub(content, exchange_rate)
+        content = add_notif_date(content, notified_orders)
+        content = convert_to_tuple(content)
+        db.truncate_table_orders()
+        sql_insert_orders = generate_insert_sql_request(content)
+        db.run_sql_with_commit(sql_insert_orders)
 
-                cursor.execute('select * from orders')
-                print(cursor.fetchall())
+        print(db.select_all_from_orders())
 
 
-    except Exception as _ex:
-        print("[INFO] Error while working with PostrgeSQL ", _ex)
-
-    finally:
-        if connection:
-            connection.close()
-
-
-# проверка дат уведомлений в БД. возвращает список заказов с сегодняшней датой уведомления
-def check_dates(cursor):
-    cursor.execute("select * from orders")
-    orders = cursor.fetchall()
-    notified_orders = ()
-    print("orders")
-    print(orders)
-    for i in orders:
-        if (i[4] < date.today()):  # если срок поставки вышел
-            if (i[5] == date.today()):  # если уведомление сегодня
-                notified_orders = notified_orders + (i[1],)
-            if (i[5] != date.today()):  # если уведомление не сегодня
-                send_telegram(i)
-                notified_orders = notified_orders + (i[1],)
-    print("notified_orders")
-    print(notified_orders)
-    return notified_orders
+# except Exception as _ex:
+#     print("[INFO] Error while working with PostrgeSQL ", _ex)
+#
+# finally:
+#     if connection:
+#         connection.close()
 
 
 # конвертация даты из "%d.%m.%Y" в "%Y-%m-%d"
@@ -120,7 +97,7 @@ def add_notif_date(content, notified_orders):
     return content
 
 
-#конвертация в кортеж
+# конвертация в кортеж
 def convert_to_tuple(content):
     content_tuple = []
     for i in content:
