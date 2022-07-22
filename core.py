@@ -7,7 +7,10 @@ from oauth2client.service_account import ServiceAccountCredentials
 from config import SHEET_ID, HOST, PORT, USER, PASSWORD, DB_NAME
 from telegram import send_telegram
 import requests
+from db import Database
 
+#Database setup
+db = Database()
 
 # создает ресурс для работы с Google Sheets API
 def get_service():
