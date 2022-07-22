@@ -1,13 +1,13 @@
 from datetime import datetime, date
-import psycopg2
 import os
 import httplib2
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
-from config import SHEET_ID, HOST, PORT, USER, PASSWORD, DB_NAME
+from config import SHEET_ID
 from telegram import send_telegram
 import requests
 from db import Database
+
 
 # Database setup
 db = Database()

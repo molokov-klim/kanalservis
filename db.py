@@ -8,6 +8,7 @@ from config import SHEET_ID, HOST, PORT, USER, PASSWORD, DB_NAME
 from telegram import send_telegram
 import requests
 
+
 class Database:
     def __init__(self):
         self.connection = psycopg2.connect(
@@ -19,15 +20,7 @@ class Database:
         )
         self.cursor = self.connection.cursor()
 
-    def test(self, message):
-        with self.connection:
-            print(type(message))
-            self.cursor.execute("""select pos from orders where pos > %s""", (message,))
-            result = self.cursor.fetchall()
-            print(result)
-            return result
-
-    #существует ли таблица
+    # существует ли таблица
     def is_exist(self, table):
         with self.connection:
             self.cursor.execute("select exists(select * from information_schema.tables where table_name=%s)", (table,))
@@ -58,12 +51,14 @@ class Database:
         with self.connection:
             self.cursor.execute('truncate orders')
             self.connection.commit()
+            return
 
     # выполнение sql запроса с коммитом
     def run_sql_with_commit(self, sql):
         with self.connection:
             self.cursor.execute(sql)
             self.connection.commit()
+            return
 
     # выбор всех полей из таблицы orders
     def select_all_from_orders(self):
@@ -71,5 +66,29 @@ class Database:
             self.cursor.execute('select * from orders')
             result = self.cursor.fetchall()
             return result
+
+    # проверка наличия пользователя в таблицу users
+    def user_exists(self, user_id):
+        with self.connection:
+            self.cursor.execute("""select * from users where user_id = %s""", (user_id,))
+            result = self.cursor.fetchmany(1)
+            return bool(len(result))
+
+    # добавление пользователя в таблицу users
+    def add_user(self, user_id):
+        with self.connection:
+            self.cursor.execute("""insert into users (user_id) values (%s)""", (user_id,))
+            self.connection.commit()
+            return
+
+    # установка флага active для пользователя в таблице users
+    def set_active(self, user_id, active):
+        with self.connection:
+            self.cursor.execute("""update users set active = %s where user_id = %s""", (active, user_id,))
+            self.connection.commit()
+            return
+    
+
+
 
 

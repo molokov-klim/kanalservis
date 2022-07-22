@@ -4,17 +4,22 @@ from config import BOT_API, BOT_NAME
 import logging
 from aiogram import Bot, Dispatcher, executor, types
 import threading
+from db import Database
 
-# Telegram bot setup
+# Telegram bot and db setup
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=BOT_API)
 dp = Dispatcher(bot)
-
+db = Database()
 
 #приветствие
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
-    await message.reply(f"Hi!\nI'm {BOT_NAME}")
+    if message.chat.type == 'private':
+        if not db.user_exists(message.from_user.id):
+            db.add_user(message.from_user.id)
+        await message.reply("Добро пожаловать!")
+
 
 #ответ на любое сообщение
 @dp.message_handler()
