@@ -3,15 +3,16 @@ import os
 import httplib2
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
+
+import telegram
 from config import SHEET_ID
-from telegram import send_telegram
 import requests
 from db import Database
-
+from telegram import send_telegram
+import asyncio
 
 # Database setup
 db = Database()
-
 
 # создает ресурс для работы с Google Sheets API
 def get_service():
@@ -38,35 +39,34 @@ def get_exchange_rate():
 
 
 # операции с базой данных
-def db_operations(content, exchange_rate):
-    # try:
-    #     connection = psycopg2.connect(
-    #         host=HOST,
-    #         port=PORT,
-    #         user=USER,
-    #         password=PASSWORD,
-    #         database=DB_NAME
-    #     )
-    #     with connection.cursor() as cursor:
-    if db.is_exist('orders'):  # если таблица orders существует
-        notified_orders = db.check_dates()
-        content = convert_date(content)
-        content = add_rub(content, exchange_rate)
-        content = add_notif_date(content, notified_orders)
-        content = convert_to_tuple(content)
-        db.truncate_table_orders()
-        sql_insert_orders = generate_insert_sql_request(content)
-        db.run_sql_with_commit(sql_insert_orders)
+def db_operations(content, exchange_rate, loop):
+    try:
+        if db.is_exist('orders'):  # если таблица orders существует
+            notified_orders = db.check_dates()
 
-        print(db.select_all_from_orders())
+            # print("notified_orders: ", notified_orders)
+            # #q.put(notified_orders)
+            # q.put(3)
+            # print(q.empty())
+            try:
+                send_telegram(notified_orders).send(None)
+                #send_telegram(notified_orders)
+            except StopIteration as _ex:
+                print("[INFO] Error with coroutine: ", _ex)
 
 
-# except Exception as _ex:
-#     print("[INFO] Error while working with PostrgeSQL ", _ex)
-#
-# finally:
-#     if connection:
-#         connection.close()
+
+            content = convert_date(content)
+            content = add_rub(content, exchange_rate)
+            content = add_notif_date(content, notified_orders)
+            content = convert_to_tuple(content)
+            db.truncate_table_orders()
+            sql_insert_orders = generate_insert_sql_request(content)
+            db.run_sql_with_commit(sql_insert_orders)
+
+            print(db.select_all_from_orders())
+    except Exception as _ex:
+        print("[INFO] Error with core: ", _ex)
 
 
 # конвертация даты из "%d.%m.%Y" в "%Y-%m-%d"
@@ -129,6 +129,6 @@ def generate_insert_sql_request(content):
 #   добавляю сумму в рублях
 #   добавляю notif_date 3333 г. если нет совпадения по order_number. если сопадение есть то дата = сегодня
 #   преобразую в тюпл тюплов
-# truncate
+# truncate orders
 # формирую запрос для инсерта
-# insert
+# insert to orders
