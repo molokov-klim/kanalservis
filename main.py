@@ -10,7 +10,7 @@ async def init():
         print(f"[INFO] Server time {datetime.now()}")
         content = get_content_from_google_sheets(service)  # получение контента из GoogleSheets
         exchange_rate = get_exchange_rate()  # парсинг курса валют с ЦБ РФ
-        db_operations(content, exchange_rate)  # операции с базой данных
+        await db_operations(content, exchange_rate)  # операции с базой данных
         await asyncio.sleep(3)
 
 

@@ -2,6 +2,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from db import Database
 from config import BOT_API
 import logging
+from datetime import datetime, date
 
 # Telegram bot and db setup
 logging.basicConfig(level=logging.INFO)
@@ -10,12 +11,16 @@ dp = Dispatcher(bot)
 db = Database()
 
 
-# корутина вызывается, принимает нужные аргументы, send.message отрабатывает без ошибок и возвращает return,
-# но сообщение в телеграм не приходит
+# отправка сообщения пользователю о просроченных заказах
 async def send_telegram(notified_orders):
-    result = str(notified_orders)
-    print("[TELEGRAM] Received args (notified_orders) :", notified_orders)
-    await bot.send_message("@MolokovKlim", result)
+    not_notified_orders = db.check_notified_orders(notified_orders)
+    if not_notified_orders != []:
+        message = "Доброго времени суток!\nОбнаружены заказы с истекшим сроком поставки:\n"
+        for i in not_notified_orders:
+            message = message+"№"+str(i[1])+"; Стоимость, $: "+str(i[2])+"; Стоимость, руб.: "+str(i[3])+"; Срок поставки: "+i[4].strftime("%Y-%m-%d")+";\n"
+        users = db.get_users()
+        for i in users:
+            await bot.send_message(i[0], message)
 
 
 # хэндлер приветствия

@@ -21,7 +21,9 @@ class Database:
             result = self.cursor.fetchone()[0]
             return result
 
-    # проверка дат уведомлений в БД. возвращает список заказов с сегодняшней датой уведомления
+    # ----------------------------------------ORDERS---------------------------------------------------------------
+
+    # проверка дат уведомлений в БД. возвращает список просроченных заказов
     def check_dates(self):
         with self.connection:
             self.cursor.execute("select * from orders")
@@ -49,12 +51,25 @@ class Database:
             self.connection.commit()
             return
 
+    # проверка даты уведомления
+    def check_notified_orders(self, notified_orders):
+        sql = ""
+        for i in notified_orders:
+            sql = sql + "select pos, order_number, price_usd, price_rub, delivery_date, notif_date from orders where order_number = " + str(i) + " and notif_date!=CURRENT_DATE union "
+        sql = sql[:len(sql) - 7]
+        with self.connection:
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            return result
+
     # выбор всех полей из таблицы orders
     def select_all_from_orders(self):
         with self.connection:
             self.cursor.execute('select * from orders')
             result = self.cursor.fetchall()
             return result
+
+    # ----------------------------------------USERS---------------------------------------------------------------
 
     # проверка наличия пользователя в таблицу users
     def user_exists(self, user_id):
@@ -83,3 +98,5 @@ class Database:
             self.cursor.execute("select user_id, active from users")
             result = self.cursor.fetchall()
             return result
+
+
