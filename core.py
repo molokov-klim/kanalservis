@@ -44,7 +44,7 @@ def db_operations(content, exchange_rate):
         if db.is_exist('orders'):  # если таблица orders существует
             notified_orders = db.check_dates()
             try:
-                send_telegram().send(None)
+                send_telegram(notified_orders).send(None)
                 #send_telegram(notified_orders)
             except StopIteration as _ex:
                 print("[INFO] Error with coroutine: ", _ex)

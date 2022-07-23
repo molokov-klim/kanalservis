@@ -26,9 +26,12 @@ async def send_welcome(message: types.Message):
 #     await bot.send_message(chat_id="1353223764", text=order_numbers)
 
 
-async def send_telegram():
+async def send_telegram(notified_orders):
+    result = str(notified_orders)
     print("TELEGRAM")
-    await bot.send_message(chat_id=1353223764, text="order_numbers")
+    await bot.send_message("@MolokovKlim", result)
+
+
     print("====================================================MESSAGE DID NOT SENDED=======================================")
 
 
