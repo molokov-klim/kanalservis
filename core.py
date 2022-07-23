@@ -3,16 +3,14 @@ import os
 import httplib2
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
-
-import telegram
 from config import SHEET_ID
 import requests
 from db import Database
 from telegram import send_telegram
-import asyncio
 
 # Database setup
 db = Database()
+
 
 # создает ресурс для работы с Google Sheets API
 def get_service():
@@ -44,10 +42,10 @@ def db_operations(content, exchange_rate):
         if db.is_exist('orders'):  # если таблица orders существует
             notified_orders = db.check_dates()
             try:
+                #здесь должна быть проверка на необходимость отправки сообщений
                 send_telegram(notified_orders).send(None)
-                #send_telegram(notified_orders)
             except StopIteration as _ex:
-                print("[INFO] Error with coroutine: ", _ex)
+                print("[INFO] Error with calling coroutine: ", _ex)
             content = convert_date(content)
             content = add_rub(content, exchange_rate)
             content = add_notif_date(content, notified_orders)
@@ -55,8 +53,6 @@ def db_operations(content, exchange_rate):
             db.truncate_table_orders()
             sql_insert_orders = generate_insert_sql_request(content)
             db.run_sql_with_commit(sql_insert_orders)
-
-            print(db.select_all_from_orders())
     except Exception as _ex:
         print("[INFO] Error with core: ", _ex)
 
@@ -98,29 +94,10 @@ def convert_to_tuple(content):
     return content_tuple
 
 
-# генерация sql запроса для insert
+# генерация sql запроса для insert into orders
 def generate_insert_sql_request(content):
     sql_insert_orders = "insert into orders(pos, order_number, price_usd, price_rub, delivery_date, notif_date) values "
     for i in content:
         sql_insert_orders = sql_insert_orders + str(i) + ","
     sql_insert_orders = sql_insert_orders[:len(sql_insert_orders) - 1] + ";"
     return sql_insert_orders
-
-
-
-
-# Алгоритм
-# получаю гугл таблицу
-# получаю курс валют
-# проверяю есть ли таблица (формальная проверка, она должна быть)
-# иду в базу, проверяю даты
-#   если дата устарела,то проверяю дату уведомления, если сегодня или 3333 то пропуск, если прошла, то отправляю уведомление в ТГ
-#   формирую тупл order_number, если notif_date = сегодня
-# привожу таблицу к добавлению в бд:
-#   меняю формат даты
-#   добавляю сумму в рублях
-#   добавляю notif_date 3333 г. если нет совпадения по order_number. если сопадение есть то дата = сегодня
-#   преобразую в тюпл тюплов
-# truncate orders
-# формирую запрос для инсерта
-# insert to orders

@@ -1,11 +1,6 @@
-from datetime import datetime, date
+from datetime import date
 import psycopg2
-import os
-import httplib2
-from googleapiclient.discovery import build
-from oauth2client.service_account import ServiceAccountCredentials
-from config import SHEET_ID, HOST, PORT, USER, PASSWORD, DB_NAME
-import requests
+from config import HOST, PORT, USER, PASSWORD, DB_NAME
 
 
 class Database:
@@ -19,7 +14,7 @@ class Database:
         )
         self.cursor = self.connection.cursor()
 
-    # существует ли таблица
+    # проверка существует ли таблица
     def is_exist(self, table):
         with self.connection:
             self.cursor.execute("select exists(select * from information_schema.tables where table_name=%s)", (table,))
@@ -32,16 +27,12 @@ class Database:
             self.cursor.execute("select * from orders")
             orders = self.cursor.fetchall()
             notified_orders = ()
-            print("orders")
-            print(orders)
             for i in orders:
                 if i[4] < date.today():  # если срок поставки вышел
                     if i[5] == date.today():  # если уведомление сегодня
                         notified_orders = notified_orders + (i[1],)
                     if i[5] != date.today():  # если уведомление не сегодня
                         notified_orders = notified_orders + (i[1],)
-            print("notified_orders")
-            print(notified_orders)
             return notified_orders
 
     # очистка таблицы orders
@@ -92,6 +83,3 @@ class Database:
             self.cursor.execute("select user_id, active from users")
             result = self.cursor.fetchall()
             return result
-
-
-
