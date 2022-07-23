@@ -1,7 +1,7 @@
 from core import get_service, get_content_from_google_sheets, get_exchange_rate, db_operations
 from telegram import start_polling
 import asyncio
-from datetime import datetime, date
+from datetime import datetime
 
 
 async def init():
